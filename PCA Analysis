@@ -1,0 +1,46 @@
+#R Script for Principal Component Analysis, Plots and Correlation Test
+#Used to reduce the number of variables from an experiment measuring solar panel
+current when colored lights where shined on the panel.
+
+#Inputting Data: Spectrum.csv refers to gel color vectors data,
+#LuxPowerFull.csv refers to power and lux data, including trial
+#without a gel filter.
+#LuxPower.csv refers to power and lux data excluding trial
+#without gel filter.
+
+data <- read.csv("Spectrum.csv")
+data <- na.omit(data)
+data2 <- read.csv("LuxPowerFull.csv")
+data3 <- read.csv("LuxPower.csv")
+
+#Principal Component Analysis#
+
+PCA <- prcomp(data[,-1], scale = T)
+summary(PCA)
+PCA
+PCscores <- PCA$x
+rownames(PCscores) <- data[,1]
+PCscores
+plot(PC2 ~ PC1, PCscores)
+text(x = PCscores[,1], y = PCscores[,2], rownames(PCscores))
+
+#Pearson’s Correlation Test: Power and Lux overall, Power and Lux between gels,Lux and PC1 Scores, Power and PC1 Scores#
+
+cor.test(data2$Power_out, data2$Lux)
+cor.test(data3$Power_out, data3$Lux)
+cor.test(data2$Lux, PCscores[,1])
+cor.test(data2$Power, PCscores[,1])
+
+#Linear Regression Models and AIC tests#
+
+model <- lm(data2$Power ~ data2$Lux + PCscores[,1]+PCscores[,2] + PCscores[,3])
+summary(model)
+step(model)
+
+model <- lm(data2$Power ~ data2$Lux + PCscores[,1]+PCscores[,2])
+summary(model)
+step(model)
+
+model <- lm(data2$Power ~ data2$Lux + PCscores[,1])
+summary(model)
+step(model)

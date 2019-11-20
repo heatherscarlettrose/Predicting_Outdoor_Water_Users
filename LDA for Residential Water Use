@@ -1,0 +1,34 @@
+#Linear Discriminant Analysis in R for residential water use
+
+master_data = read.csv('Data_Master.csv', header=TRUE)
+
+#See Column Names
+colnames(master_data)
+
+#Assign variables by Column name in csv file
+#Tot= Total volume, duration, or peak per House
+#High= above average users
+
+House <- master_data$House
+Tot_Vol <-master_data$Volume
+Tot_Dur <- master_data$Duration
+Tot_Peak <- master_data$Peak
+High_Vol <- master_data$Above_avg_vol
+High_Duration <- master_data$Above_avg_dur
+High_Peak <- master_data$Above_avg_peak
+City <- master_data$City
+Region <- master_data$Region
+Tot_Outdoor <- master_data$Outdoor_Events_y
+Outdoor_User <- master_data$Outdoor_User
+
+set.seed(500)
+sample_size <-floor(.8*nrow(master_data))
+train_ind <- sample(seq_len(nrow(master_data)), size=sample_size)
+test <- master_data[-train_ind,]
+library(MASS)
+
+#_________________Linear_Discriminant_Analysis____________________________
+lda.fit= lda(Outdoor_User~Tot_Vol+Tot_Dur+Tot_Peak+High_Vol+High_Duration+High_Peak+City+Region, data=master_data)
+
+lda_predict <- predict(lda.fit, newdata = master_data[,c(1,2,3,4,5,6,7,8,9,10,11)])$class
+table(lda_predict, Outdoor_User)

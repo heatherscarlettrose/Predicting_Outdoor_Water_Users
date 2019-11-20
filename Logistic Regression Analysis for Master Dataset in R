@@ -1,0 +1,29 @@
+#Logistic Regression Analysis for Data_Master.csv in R
+
+master_data = read.csv('Data_Master.csv', header=TRUE)
+
+#See Column Names
+colnames(master_data)
+
+#Assign variables by Column name in csv file
+#Tot= Total volume, duration, or peak per House
+#High= above average users
+
+House <- master_data$House
+Tot_Vol <-master_data$Volume
+Tot_Dur <- master_data$Duration
+Tot_Peak <- master_data$Peak
+High_Vol <- master_data$Above_avg_vol
+High_Duration <- master_data$Above_avg_dur
+High_Peak <- master_data$Above_avg_peak
+City <- master_data$City
+Region <- master_data$Region
+Tot_Outdoor <- master_data$Outdoor_Events_y
+Outdoor_User <- master_data$Outdoor_User
+
+summary(master_data)
+
+pairs(master_data)
+logistic_regression <- glm(Outdoor_User~ House+Tot_Vol+Tot_Dur+Tot_Peak+High_Vol+High_Duration+High_Peak+City+Region,family = 'binomial')
+
+summary(logistic_regression)
