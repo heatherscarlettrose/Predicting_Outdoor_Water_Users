@@ -1,0 +1,103 @@
+#Creating Master Data Set 3-31-2019
+
+#Really Useful Video Series on Using Pandas:
+#https://www.youtube.com/playlist?list=PL5-da3qGB5ICCsgW1MxlZ0Hq8LL5U3u9y
+
+#____________________________________________________________________
+#Import Pandas Package
+import pandas as pd
+
+#Import original data set
+data = pd.read_csv('REU2016_Main_Meter_Events.csv')
+
+#Delete unwanted columns
+del data ['SumAs']
+
+del data ['StartTime']
+
+del data ['Mode']
+
+#Change Column Names
+data.columns = ['House','Event','Duration','Peak','Volume']
+
+#Preview Data
+data.head()
+
+#_________________Specify Outdoor Water Users____________________________
+
+#Create a function that labels outdoor events as 1
+def outdoor(val):
+  if val in {'Irrigation','Pool'}:
+    r=1
+  else:
+    r=0
+  return r
+
+#Create Outdoor Water Events Count Column called Outdoor_Events
+data['Outdoor_Events'] = data.apply(lambda i: outdoor(i['Event']), axis=1)
+
+#Sum Outdoor_Events by House
+outdoor_by_house = data.groupby('House').Outdoor_Events.sum()
+
+type(outdoor_by_house)
+
+#Convert Series to DataFrame
+Outdoor_Users = outdoor_by_house.to_frame()
+
+#_________________Sum_Indoor_Events_Vol_Dur_and_Peak____________________________
+
+#Grab only faucet and shower events
+faucet_shower = data[(data.Event == 'Faucet')|(data.Event == 'Shower')]
+
+#Sum all Volume, Duration and Peak events by house
+sum_houses = faucet_shower.groupby('House').sum()
+
+#Get means for volume, duration and peak
+mean_vol = sum_houses['Volume'].values.mean()
+
+mean_vol
+
+mean_dur = sum_houses['Duration'].values.mean()
+
+mean_dur
+
+mean_peak = sum_houses['Peak'].values.mean()
+
+mean_peak
+
+#_________________Create_Boolean_Columns____________________________
+
+#Create boolean variable for homes greater than the mean and outdoor water users
+boo_avg_vol = sum_houses['Volume']>mean_vol
+
+boo_avg_dur = sum_houses['Duration']>mean_dur
+
+boo_avg_peak = sum_houses['Peak']>mean_peak
+
+boo_outdoor = Outdoor_Users['Outdoor_Events']>0
+
+#Convert True/False to column of 1's and 0's
+[1 if i==True else 0 for i in boo_avg_vol]
+
+[1 if i==True else 0 for i in boo_avg_dur]
+
+[1 if i==True else 0 for i in boo_avg_peak]
+
+[1 if i==True else 0 for i in boo_outdoor]
+
+#Create new columns in Above average and outdoor users
+sum_houses['Above_avg_vol'] = [1 if i==True else 0 for i in boo_avg_vol]
+
+sum_houses['Above_avg_dur'] = [1 if i==True else 0 for i in boo_avg_dur]
+
+sum_houses['Above_avg_peak'] = [1 if i==True else 0 for i in boo_avg_peak]
+
+Outdoor_Users['Outdoor_User'] = [1 if i==True else 0 for i in boo_outdoor]
+
+#_________________Merge_Indoor_and_Outdoor_Data_Into_Master_Dataframe___________
+
+#Merge Dataframes to create one Master Data frame
+Master_Data = pd.merge(sum_houses,Outdoor_Users, on='House')
+
+#Create New CSV File
+Master_Data.to_csv('Master_Data_Set.csv')
